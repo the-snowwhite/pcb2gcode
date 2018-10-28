@@ -175,6 +175,7 @@ void do_pcb2gcode(int argc, const char* argv[]) {
         driller->spinup_time = vm["spinup-time"].as<Time>().asMillisecond(1);
         driller->spindown_time = spindown_time;
         driller->zchange = vm["zchange"].as<Length>().asInch(unit);
+        driller->drillprobe = vm["drillprobe"].as<bool>();
     }
 
     //---------------------------------------------------------------------------
@@ -388,7 +389,16 @@ void do_pcb2gcode(int argc, const char* argv[]) {
               cutter->zwork = vm["zmilldrill"].as<Length>().asInch(unit);
             } else {
               cutter->zwork = vm["zdrill"].as<Length>().asInch(unit);
-            }
+                 if (driller->drillprobe == true)
+                {
+                    if (vm.count("dp-endpoint")) {
+                        driller->dp_endpoint = vm["dp-endpoint"].as<double>() * unit;
+                    }                
+                    if (vm.count("dp-feed")) {
+                        driller->dp_feed = vm["dp-feed"].as<int>();
+                    }                
+                }
+           }
             ep.export_ngc(outputdir, milldrill_filename, cutter,
                           vm["zchange-absolute"].as<bool>());
             ep.export_ngc(outputdir, drill_filename,

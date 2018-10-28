@@ -306,8 +306,21 @@ void ExcellonProcessor::export_ngc(const string of_dir, const boost::optional<st
            << "\n(MSG, Change tool bit to drill size "
            << drill_to_string(bit) << ")\n"
            << "M6      (Tool change.)\n"
-           << "M0      (Temporary machine stop.)\n"
-           << "M3      (Spindle on clockwise.)\n"
+           << "M0      (Temporary machine stop.)\n";
+           if (driller->drillprobe == true)
+           {
+                of << "G10 L2 P1 z0 (set G54 Z offset to 0)\n"
+                << "M64 P0 (enable probe input)\n"
+                << "G49       (measure without the last tool's offset)\n"
+                << "G38.2 Z" << driller->dp_endpoint * cfactor << " F" << driller->dp_feed << " (measure)\n"
+                << "M65 P0 (disable probe input)\n"
+                << "G91 G0Z5 (off the switch)\n"
+                << "#1000=#5063 (save reference tool length)\n"
+                << "G43.1 Z#1000 (set new tool offset)\n"
+                << "(debug,new length is #1000)\n"
+                << "G90       (absolute coords)\n";
+           }
+           of << "M3      (Spindle on clockwise.)\n"
            << "G0 Z" << driller->zsafe * cfactor << "\n"
            << "G04 P" << driller->spinup_time << "\n\n";
 
